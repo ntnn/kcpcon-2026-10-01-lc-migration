@@ -111,3 +111,16 @@ kubeconfig:
 			--tls-server-name $(KCP_HOSTNAME) || exit 1; \
 	done
 	@echo "export KUBECONFIG=$(CURDIR)/$(KCP_KUBECONFIG) PATH=$(CURDIR)/$(TOOLS_DIR):\$$PATH"
+
+ETCDVIEW := bin/etcdview
+# Host ports mapped to the etcd NodePorts in demo/kind.yaml.
+ETCDVIEW_ENDPOINTS := -etcd root=http://127.0.0.1:23790 -etcd shard-0=http://127.0.0.1:23791 -etcd shard-1=http://127.0.0.1:23792
+
+.PHONY: $(ETCDVIEW)
+$(ETCDVIEW):
+	$(GO) build -o $@ ./tools/etcdview
+
+# Usage: make etcdview CLUSTER=<logical cluster name>
+.PHONY: etcdview
+etcdview: $(ETCDVIEW)
+	$(ETCDVIEW) $(ETCDVIEW_ENDPOINTS) -cluster $(CLUSTER)
