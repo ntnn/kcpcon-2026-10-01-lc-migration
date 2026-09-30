@@ -11,6 +11,9 @@ KUBECTL_KCP := $(TOOLS_DIR)/kubectl-kcp-$(KCP_PLUGINS_VER)
 KUBECTL_WS := $(TOOLS_DIR)/kubectl-ws-$(KCP_PLUGINS_VER)
 KUBECTL_CREATE_WORKSPACE := $(TOOLS_DIR)/kubectl-create-workspace-$(KCP_PLUGINS_VER)
 
+STALK_VER := 0.8.0-beta.2
+STALK := $(TOOLS_DIR)/stalk-$(STALK_VER)
+
 CERT_MANAGER_VER := v1.21.2
 
 KIND_CLUSTER := kcp-lc-demo
@@ -33,7 +36,7 @@ ETCD_SHARDS := root shard-0 shard-1
 K := $(KUBECTL) --kubeconfig $(KIND_KUBECONFIG)
 
 .PHONY: tools
-tools: $(KUBECTL_KCP) $(KUBECTL_WS) $(KUBECTL_CREATE_WORKSPACE)
+tools: $(KUBECTL_KCP) $(KUBECTL_WS) $(KUBECTL_CREATE_WORKSPACE) $(STALK)
 
 $(KUBECTL_KCP):
 	mkdir -p $(TOOLS_DIR)
@@ -55,6 +58,13 @@ $(KUBECTL_CREATE_WORKSPACE):
 		-url 'https://github.com/kcp-dev/kcp/releases/download/v{{.Version}}/kubectl-create-workspace-plugin_{{.Version}}_{{.OS}}_{{.Arch}}.tar.gz' \
 		-inarchive 'bin/kubectl-create-workspace'
 	ln -sf $(notdir $@) $(TOOLS_DIR)/kubectl-create-workspace
+
+$(STALK):
+	mkdir -p $(TOOLS_DIR)
+	$(MINDL) download -common -out $@ -version $(STALK_VER) \
+		-url 'https://codeberg.org/xrstf/stalk/releases/download/v{{.Version}}/stalk_{{.Version}}_{{.OS}}_{{.Arch}}.{{.OSArchive}}' \
+		-inarchive 'stalk_{{.Version}}_{{.OS}}_{{.Arch}}/stalk{{.Exe}}'
+	ln -sf $(notdir $@) $(TOOLS_DIR)/stalk
 
 .PHONY: up
 up: tools cluster cert-manager etcd operator kcp kubeconfig
