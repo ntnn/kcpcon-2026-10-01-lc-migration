@@ -1,3 +1,6 @@
 /hack/tools
 /.kube
 /bin
+/slides/node_modules
+/slides/dist
+/slides/*.pdf

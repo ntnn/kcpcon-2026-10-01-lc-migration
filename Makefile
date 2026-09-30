@@ -176,3 +176,14 @@ migrate: $(DEMO)
 clean-demo: $(KCPCTL)
 	KUBECONFIG=$(KCP_KUBECONFIG) $(KCPCTL) -W :root delete workspace demo --ignore-not-found --wait --timeout 5m
 	rm -f $(KUBE_DIR)/root-demo.kubeconfig
+
+NPM ?= npm
+
+slides/node_modules: slides/package.json slides/package-lock.json
+	$(NPM) --prefix slides ci --no-audit --no-fund
+	touch $@
+
+# Serves the slides with presenter mode and opens the browser.
+.PHONY: slides
+slides: slides/node_modules
+	$(NPM) --prefix slides run dev
