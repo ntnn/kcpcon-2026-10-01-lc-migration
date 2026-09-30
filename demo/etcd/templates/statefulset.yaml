@@ -36,6 +36,7 @@ spec:
             - --initial-cluster=$(HOSTNAME)=http://$(HOSTNAME).$(SERVICE_NAME).svc.cluster.local:2380
             - --initial-advertise-peer-urls=http://$(HOSTNAME).$(SERVICE_NAME).svc.cluster.local:2380
             - --listen-metrics-urls=http://0.0.0.0:8080
+            - --quota-backend-bytes={{ int64 .Values.quotaBackendBytes }}
           env:
             - name: HOSTNAME
               valueFrom:
@@ -91,4 +92,4 @@ spec:
           - ReadWriteOnce
         resources:
           requests:
-            storage: 2Gi
+            storage: '{{ .Values.storage }}'
