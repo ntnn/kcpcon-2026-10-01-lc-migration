@@ -160,3 +160,10 @@ commands: $(DEMO) $(ETCDVIEW)
 .PHONY: migrate
 migrate: $(DEMO)
 	$(DEMO) migrate -kubeconfig $(KCP_KUBECONFIG) $(DEMO_FLAGS)
+
+# Deletes the demo workspace tree and its generated kubeconfigs.
+.PHONY: clean-demo
+clean-demo:
+	$(KUBECTL) --kubeconfig $(KCP_KUBECONFIG) --server https://127.0.0.1:$(KCP_HOST_PORT)/clusters/root \
+		delete workspace demo --ignore-not-found --wait --timeout 5m
+	rm -f $(KUBE_DIR)/root-demo.kubeconfig $(KUBE_DIR)/root-demo-tenant.kubeconfig
