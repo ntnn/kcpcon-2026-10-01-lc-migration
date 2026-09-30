@@ -134,3 +134,29 @@ $(ETCDVIEW):
 .PHONY: etcdview
 etcdview: $(ETCDVIEW)
 	$(ETCDVIEW) $(ETCDVIEW_ENDPOINTS) -cluster $(CLUSTER)
+
+DEMO := bin/demo
+
+.PHONY: $(DEMO)
+$(DEMO):
+	$(GO) build -o $@ ./tools/demo
+
+# DEMO_FLAGS selects the migrated workspace, e.g. DEMO_FLAGS="-parent root:demo -workspace tenant".
+DEMO_FLAGS :=
+
+# Steps through setup and migration, waiting for enter before each step.
+.PHONY: demo
+demo: $(DEMO) $(ETCDVIEW)
+	$(DEMO) run -kubeconfig $(KCP_KUBECONFIG) $(DEMO_FLAGS)
+
+.PHONY: seed
+seed: $(DEMO)
+	$(DEMO) seed -kubeconfig $(KCP_KUBECONFIG) $(DEMO_FLAGS)
+
+.PHONY: commands
+commands: $(DEMO) $(ETCDVIEW)
+	$(DEMO) commands -kubeconfig $(KCP_KUBECONFIG) $(DEMO_FLAGS)
+
+.PHONY: migrate
+migrate: $(DEMO)
+	$(DEMO) migrate -kubeconfig $(KCP_KUBECONFIG) $(DEMO_FLAGS)
