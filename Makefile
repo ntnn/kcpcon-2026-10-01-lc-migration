@@ -11,6 +11,9 @@ KUBECTL_KCP := $(TOOLS_DIR)/kubectl-kcp-$(KCP_PLUGINS_VER)
 KUBECTL_WS := $(TOOLS_DIR)/kubectl-ws-$(KCP_PLUGINS_VER)
 KUBECTL_CREATE_WORKSPACE := $(TOOLS_DIR)/kubectl-create-workspace-$(KCP_PLUGINS_VER)
 
+KCPCTL_VER := 0.1.0
+KCPCTL := $(TOOLS_DIR)/kcpctl-$(KCPCTL_VER)
+
 STALK_VER := 0.8.0-beta.2
 STALK := $(TOOLS_DIR)/stalk-$(STALK_VER)
 
@@ -36,7 +39,7 @@ ETCD_SHARDS := root shard-0 shard-1
 K := $(KUBECTL) --kubeconfig $(KIND_KUBECONFIG)
 
 .PHONY: tools
-tools: $(KUBECTL_KCP) $(KUBECTL_WS) $(KUBECTL_CREATE_WORKSPACE) $(STALK)
+tools: $(KUBECTL_KCP) $(KUBECTL_WS) $(KUBECTL_CREATE_WORKSPACE) $(STALK) $(KCPCTL)
 
 $(KUBECTL_KCP):
 	mkdir -p $(TOOLS_DIR)
@@ -58,6 +61,13 @@ $(KUBECTL_CREATE_WORKSPACE):
 		-url 'https://github.com/kcp-dev/kcp/releases/download/v{{.Version}}/kubectl-create-workspace-plugin_{{.Version}}_{{.OS}}_{{.Arch}}.tar.gz' \
 		-inarchive 'bin/kubectl-create-workspace'
 	ln -sf $(notdir $@) $(TOOLS_DIR)/kubectl-create-workspace
+
+$(KCPCTL):
+	mkdir -p $(TOOLS_DIR)
+	$(MINDL) download -common -out $@ -version $(KCPCTL_VER) \
+		-url 'https://github.com/ntnn/kcpctl/releases/download/v{{.Version}}/kcpctl_{{.Version}}_{{.OS}}_{{.Arch}}.{{.OSArchive}}' \
+		-inarchive 'kcpctl{{.Exe}}'
+	ln -sf $(notdir $@) $(TOOLS_DIR)/kcpctl
 
 $(STALK):
 	mkdir -p $(TOOLS_DIR)
@@ -163,7 +173,6 @@ migrate: $(DEMO)
 
 # Deletes the demo workspace tree and its generated kubeconfigs.
 .PHONY: clean-demo
-clean-demo:
-	$(KUBECTL) --kubeconfig $(KCP_KUBECONFIG) --server https://127.0.0.1:$(KCP_HOST_PORT)/clusters/root \
-		delete workspace demo --ignore-not-found --wait --timeout 5m
-	rm -f $(KUBE_DIR)/root-demo.kubeconfig $(KUBE_DIR)/root-demo-tenant.kubeconfig
+clean-demo: $(KCPCTL)
+	KUBECONFIG=$(KCP_KUBECONFIG) $(KCPCTL) -W :root delete workspace demo --ignore-not-found --wait --timeout 5m
+	rm -f $(KUBE_DIR)/root-demo.kubeconfig
