@@ -1,0 +1,7 @@
+apiVersion: v2
+name: etcd
+description: >-
+  Single-node etcd without TLS or authentication, demo use only.
+  Derived from the kcp-operator CI chart (hack/ci/testdata/etcd).
+type: application
+version: 0.1.0

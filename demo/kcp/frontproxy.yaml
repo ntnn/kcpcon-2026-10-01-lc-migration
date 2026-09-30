@@ -1,0 +1,34 @@
+apiVersion: operator.kcp.io/v1alpha1
+kind: FrontProxy
+metadata:
+  name: front-proxy
+spec:
+  rootShard:
+    ref:
+      name: root
+  image:
+    tag: main@sha256:d62bcc93a1d2a09d7ce40dea1a9f100bc0e376cd9cd9b6d3ba676c32329d60ce
+  replicas: 1
+  certificateTemplates:
+    server:
+      spec:
+        dnsNames:
+          - localhost
+        ipAddresses:
+          - 127.0.0.1
+---
+# Operator forces its Service to ClusterIP, kind reaches the front-proxy via this NodePort.
+apiVersion: v1
+kind: Service
+metadata:
+  name: front-proxy-nodeport
+spec:
+  type: NodePort
+  selector:
+    app.kubernetes.io/component: front-proxy
+    app.kubernetes.io/instance: front-proxy
+  ports:
+    - name: https
+      port: 6443
+      targetPort: 6443
+      nodePort: 30443

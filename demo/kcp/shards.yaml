@@ -1,0 +1,33 @@
+apiVersion: operator.kcp.io/v1alpha1
+kind: Shard
+metadata:
+  name: shard-0
+spec:
+  rootShard:
+    ref:
+      name: root
+  etcd:
+    endpoints:
+      - http://etcd-shard-0.kcp.svc.cluster.local:2379
+  image:
+    tag: main@sha256:d62bcc93a1d2a09d7ce40dea1a9f100bc0e376cd9cd9b6d3ba676c32329d60ce
+  replicas: 1
+  extraArgs:
+    - --feature-gates=LogicalClusterMigration=true
+---
+apiVersion: operator.kcp.io/v1alpha1
+kind: Shard
+metadata:
+  name: shard-1
+spec:
+  rootShard:
+    ref:
+      name: root
+  etcd:
+    endpoints:
+      - http://etcd-shard-1.kcp.svc.cluster.local:2379
+  image:
+    tag: main@sha256:d62bcc93a1d2a09d7ce40dea1a9f100bc0e376cd9cd9b6d3ba676c32329d60ce
+  replicas: 1
+  extraArgs:
+    - --feature-gates=LogicalClusterMigration=true
