@@ -14,6 +14,9 @@ import (
 // errWatchClosed is returned when etcd ends a watch without an error.
 var errWatchClosed = errors.New("watch closed")
 
+// listPageSize is the number of keys per list request, values of kcp objects are up to 1 MiB.
+const listPageSize = 100
+
 // retryInterval is the wait before listing again after a failed list or watch.
 const retryInterval = 2 * time.Second
 
@@ -75,28 +78,49 @@ func (w watcher) run(ctx context.Context) {
 
 // list sends all keys of the logical cluster and returns the revision they were read at.
 func (w watcher) list(ctx context.Context) (int64, error) {
-	resp, err := w.kv.Get(ctx, w.prefix, clientv3.WithPrefix())
-	if err != nil {
-		return 0, fmt.Errorf("listing %s: %w", w.prefix, err)
-	}
-
 	var items []item
-	for _, kv := range resp.Kvs {
-		it, ok := w.item(string(kv.Key))
-		if !ok {
-			continue
+	var rev int64
+	key := w.prefix
+	end := clientv3.GetPrefixRangeEnd(w.prefix)
+	for {
+		opts := []clientv3.OpOption{
+			clientv3.WithRange(end),
+			clientv3.WithLimit(listPageSize),
 		}
-		it.rev = kv.ModRevision
-		it.lease = kv.Lease
-		it.uid = objectUID(kv.Value)
-		items = append(items, it)
+		// Later pages read at the revision of the first page for a consistent list.
+		if rev != 0 {
+			opts = append(opts, clientv3.WithRev(rev))
+		}
+		resp, err := w.kv.Get(ctx, key, opts...)
+		if err != nil {
+			return 0, fmt.Errorf("listing %s: %w", w.prefix, err)
+		}
+		if rev == 0 {
+			rev = resp.Header.Revision
+		}
+
+		for _, kv := range resp.Kvs {
+			it, ok := w.item(string(kv.Key))
+			if !ok {
+				continue
+			}
+			it.rev = kv.ModRevision
+			it.lease = kv.Lease
+			it.uid = objectUID(kv.Value)
+			items = append(items, it)
+		}
+
+		if !resp.More || len(resp.Kvs) == 0 {
+			break
+		}
+		key = string(resp.Kvs[len(resp.Kvs)-1].Key) + "\x00"
 	}
 
 	w.send(ctx, listMsg{
 		shard: w.shard,
 		items: items,
 	})
-	return resp.Header.Revision, nil
+	return rev, nil
 }
 
 // watchFrom sends changes starting at rev until ctx is done or the watch fails.

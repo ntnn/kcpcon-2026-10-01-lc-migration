@@ -12,6 +12,14 @@ spec:
   image:
     tag: main@sha256:d62bcc93a1d2a09d7ce40dea1a9f100bc0e376cd9cd9b6d3ba676c32329d60ce
   replicas: 1
+  # The watch cache holds all demo data, the operator default limit of 2Gi is too small.
+  resources:
+    requests:
+      cpu: "1"
+      memory: 1Gi
+    limits:
+      cpu: "4"
+      memory: 12Gi
   extraArgs:
     - --feature-gates=LogicalClusterMigration=true
 ---
@@ -29,5 +37,13 @@ spec:
   image:
     tag: main@sha256:d62bcc93a1d2a09d7ce40dea1a9f100bc0e376cd9cd9b6d3ba676c32329d60ce
   replicas: 1
+  # The watch cache holds all demo data, the operator default limit of 2Gi is too small.
+  resources:
+    requests:
+      cpu: "1"
+      memory: 1Gi
+    limits:
+      cpu: "4"
+      memory: 12Gi
   extraArgs:
     - --feature-gates=LogicalClusterMigration=true
