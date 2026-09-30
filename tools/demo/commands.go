@@ -30,14 +30,14 @@ func commands(ctx context.Context, args []string) error {
 	return printViewerCommands(ctx, os.Stdout, ws, *outDir)
 }
 
-// printViewerCommands writes kubeconfigs for the parent and the migrated workspace to outDir
+// printViewerCommands writes a kubeconfig for the parent workspace to outDir, stalk has no workspace flag,
 // and prints the commands to watch the migration from other terminals.
 func printViewerCommands(ctx context.Context, w io.Writer, ws workspaceFlags, outDir string) error {
 	cluster, err := ws.cluster(ctx)
 	if err != nil {
 		return err
 	}
-	parentServer, workspaceServer, err := ws.servers()
+	parentServer, _, err := ws.servers()
 	if err != nil {
 		return err
 	}
@@ -46,39 +46,48 @@ func printViewerCommands(ctx context.Context, w io.Writer, ws workspaceFlags, ou
 	if err := writeKubeconfig(ws.kubeconfig, parentKubeconfig, parentServer); err != nil {
 		return err
 	}
-	workspaceKubeconfig := filepath.Join(outDir, kubeconfigName(ws.parent+":"+ws.workspace))
-	if err := writeKubeconfig(ws.kubeconfig, workspaceKubeconfig, workspaceServer); err != nil {
-		return err
+	kubeconfig, err := filepath.Abs(ws.kubeconfig)
+	if err != nil {
+		return fmt.Errorf("resolving kubeconfig path: %w", err)
 	}
 
-	return printCommands(w, commandValues{
-		cluster:             cluster,
-		parentKubeconfig:    parentKubeconfig,
-		workspaceKubeconfig: workspaceKubeconfig,
-	})
-}
-
-// commandValues are substituted into the printed commands.
-type commandValues struct {
-	cluster             string
-	parentKubeconfig    string
-	workspaceKubeconfig string
-}
-
-func printCommands(w io.Writer, v commandValues) error {
-	_, err := fmt.Fprintf(w, `# Terminal 1: keys of logical cluster %[1]s in the etcd of every shard
+	_, err = fmt.Fprintf(w, `# Terminal 1: keys of logical cluster %[1]s in the etcd of every shard
 bin/etcdview %[2]s -cluster %[1]s
 
 # Terminal 2: Workspace and LogicalClusterMigration objects
 hack/tools/stalk --kubeconfig %[3]s workspaces,logicalclustermigrations
 
 # Terminal 3: a client of the workspace, one request per second
-while sleep 1; do kubectl --kubeconfig %[4]s get configmap kube-root-ca.crt -o name; done
+export KUBECONFIG=%[4]s
+while sleep 1; do hack/tools/kcpctl -W :%[5]s get configmap kube-root-ca.crt -o name; done
 `,
-		v.cluster,
+		cluster,
 		etcdEndpoints,
-		v.parentKubeconfig,
-		v.workspaceKubeconfig,
+		parentKubeconfig,
+		kubeconfig,
+		ws.parent+":"+ws.workspace,
+	)
+	if err != nil {
+		return fmt.Errorf("printing commands: %w", err)
+	}
+	return nil
+}
+
+// printInspectCommands prints the commands to inspect the workspace and the migration.
+func printInspectCommands(w io.Writer, ws workspaceFlags, migration string) error {
+	kubeconfig, err := filepath.Abs(ws.kubeconfig)
+	if err != nil {
+		return fmt.Errorf("resolving kubeconfig path: %w", err)
+	}
+	_, err = fmt.Fprintf(w, `# Inspect the workspace and the migration
+export KUBECONFIG=%[1]s
+hack/tools/kcpctl -W :%[2]s get workspace %[3]s -o yaml
+hack/tools/kcpctl -W :%[2]s get logicalclustermigration %[4]s -o yaml
+`,
+		kubeconfig,
+		ws.parent,
+		ws.workspace,
+		migration,
 	)
 	if err != nil {
 		return fmt.Errorf("printing commands: %w", err)

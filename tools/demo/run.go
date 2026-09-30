@@ -194,7 +194,13 @@ func (d *demo) run(ctx context.Context, st stepper, opts seedOptions, outDir str
 	if err != nil {
 		return err
 	}
-	return printComparison(st.out, before, after)
+	if err := printComparison(st.out, before, after); err != nil {
+		return err
+	}
+	if err := st.print("\n"); err != nil {
+		return err
+	}
+	return printInspectCommands(st.out, d.ws, migration.GetName())
 }
 
 // snapshot is the state compared before and after the migration.
