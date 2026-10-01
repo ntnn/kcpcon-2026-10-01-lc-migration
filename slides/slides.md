@@ -27,6 +27,23 @@ layout: section
 layout: section
 ---
 
+# Nomenclature
+
+---
+
+# Nomenclature
+
+- LogicalCluster
+  - "Namespace" for kube objects
+  - Assigned to a shard
+- Workspace
+  - Frontmatter for a LogicalCluster
+  - Object in the parent LogicalCluster
+
+---
+layout: section
+---
+
 # Why
 
 ---
