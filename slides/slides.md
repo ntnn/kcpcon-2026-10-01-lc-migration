@@ -244,6 +244,8 @@ flowchart LR
   M --> OC[OriginCleanup<br/>origin]
   OC --> DF[DestinationFinalize<br/>destination]
   DF --> C[Completed]
+  classDef current fill:#4b5563,stroke:#e5e7eb,stroke-width:2px,color:#fff
+  class P current
 ```
 
 - Hides the logical cluster and blocks requests to it
@@ -261,6 +263,8 @@ flowchart LR
   M --> OC[OriginCleanup<br/>origin]
   OC --> DF[DestinationFinalize<br/>destination]
   DF --> C[Completed]
+  classDef current fill:#4b5563,stroke:#e5e7eb,stroke-width:2px,color:#fff
+  class M current
 ```
 
 - Hides the logical cluster and blocks requests to it
@@ -279,6 +283,8 @@ flowchart LR
   M --> OC[OriginCleanup<br/>origin]
   OC --> DF[DestinationFinalize<br/>destination]
   DF --> C[Completed]
+  classDef current fill:#4b5563,stroke:#e5e7eb,stroke-width:2px,color:#fff
+  class OC current
 ```
 
 - `etcd Delete` per group/resource prefix of the logical cluster
@@ -287,10 +293,34 @@ flowchart LR
 
 # DestinationFinalize on Destination
 
+```mermaid
+flowchart LR
+  P[Preparing<br/>origin] --> M[Migrating<br/>destination]
+  M --> OC[OriginCleanup<br/>origin]
+  OC --> DF[DestinationFinalize<br/>destination]
+  DF --> C[Completed]
+  classDef current fill:#4b5563,stroke:#e5e7eb,stroke-width:2px,color:#fff
+  class DF current
+```
+
 - Unhides the logical cluster
 - Recreate bound CRDs
 - Allow requests again
 - Relist all informers
+
+---
+
+# Completed
+
+```mermaid
+flowchart LR
+  P[Preparing<br/>origin] --> M[Migrating<br/>destination]
+  M --> OC[OriginCleanup<br/>origin]
+  OC --> DF[DestinationFinalize<br/>destination]
+  DF --> C[Completed]
+  classDef current fill:#4b5563,stroke:#e5e7eb,stroke-width:2px,color:#fff
+  class C current
+```
 
 ---
 layout: center
