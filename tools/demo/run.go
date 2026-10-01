@@ -35,7 +35,6 @@ func runDemo(ctx context.Context, args []string) error {
 	ws.register(fs)
 	var opts seedOptions
 	opts.register(fs)
-	parentShard := fs.String("parent-shard", "root", "shard of the parent workspace")
 	shard := fs.String("shard", "shard-0", "origin shard of the migrated workspace")
 	destination := fs.String("destination", "shard-1", "destination shard")
 	outDir := fs.String("out", ".kube", "directory for the generated kubeconfigs")
@@ -49,7 +48,7 @@ func runDemo(ctx context.Context, args []string) error {
 		return err
 	}
 
-	d, err := newDemo(ws, *parentShard, *shard, *destination)
+	d, err := newDemo(ws, *shard, *destination)
 	if err != nil {
 		return err
 	}
@@ -68,59 +67,30 @@ func runDemo(ctx context.Context, args []string) error {
 // demo holds the clients and names of one demo run.
 type demo struct {
 	ws          workspaceFlags
-	parentShard string
 	shard       string
 	destination string
-	parentName  string
 
-	grandparentServer string
-	parentServer      string
-	workspaceServer   string
+	parentServer    string
+	workspaceServer string
 }
 
-func newDemo(ws workspaceFlags, parentShard, shard, destination string) (*demo, error) {
-	grandparent, parentName, ok := cutLast(ws.parent, ":")
-	if !ok {
-		return nil, fmt.Errorf("-parent %q must have a parent workspace, e.g. root:demo", ws.parent)
-	}
-	grandparentServer, err := ws.server(grandparent)
-	if err != nil {
-		return nil, err
-	}
+func newDemo(ws workspaceFlags, shard, destination string) (*demo, error) {
 	parentServer, workspaceServer, err := ws.servers()
 	if err != nil {
 		return nil, err
 	}
 	return &demo{
-		ws:                ws,
-		parentShard:       parentShard,
-		shard:             shard,
-		destination:       destination,
-		parentName:        parentName,
-		grandparentServer: grandparentServer,
-		parentServer:      parentServer,
-		workspaceServer:   workspaceServer,
+		ws:              ws,
+		shard:           shard,
+		destination:     destination,
+		parentServer:    parentServer,
+		workspaceServer: workspaceServer,
 	}, nil
 }
 
 func (d *demo) run(ctx context.Context, st stepper, opts seedOptions, outDir string) error {
-	grandparentClient, err := dynamicClient(d.ws.kubeconfig, d.grandparentServer)
-	if err != nil {
-		return err
-	}
 	parentClient, err := dynamicClient(d.ws.kubeconfig, d.parentServer)
 	if err != nil {
-		return err
-	}
-
-	parent := workspaceObject(d.parentName, d.parentShard)
-	if err := st.step(fmt.Sprintf("Create workspace %s on shard %s", d.ws.parent, d.parentShard), parent); err != nil {
-		return err
-	}
-	if err := createAndWait(ctx, grandparentClient.Resource(workspaceGVR), parent, "Ready"); err != nil {
-		return err
-	}
-	if err := st.done("workspace %s is Ready", d.ws.parent); err != nil {
 		return err
 	}
 

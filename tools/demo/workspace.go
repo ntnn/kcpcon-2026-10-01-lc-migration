@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"net/url"
 	"os"
-	"strings"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -23,7 +22,7 @@ type workspaceFlags struct {
 
 func (w *workspaceFlags) register(fs *flag.FlagSet) {
 	fs.StringVar(&w.kubeconfig, "kubeconfig", os.Getenv("KUBECONFIG"), "kcp admin kubeconfig")
-	fs.StringVar(&w.parent, "parent", "root:demo", "workspace holding the migrated workspace and the migration")
+	fs.StringVar(&w.parent, "parent", "root", "workspace holding the migrated workspace and the migration")
 	fs.StringVar(&w.workspace, "workspace", "tenant", "name of the migrated workspace")
 }
 
@@ -82,13 +81,4 @@ func (w *workspaceFlags) cluster(ctx context.Context) (string, error) {
 		return "", fmt.Errorf("workspace %s:%s has no spec.cluster", w.parent, w.workspace)
 	}
 	return cluster, nil
-}
-
-// cutLast splits s around the last sep.
-func cutLast(s, sep string) (string, string, bool) {
-	i := strings.LastIndex(s, sep)
-	if i < 0 {
-		return "", "", false
-	}
-	return s[:i], s[i+len(sep):], true
 }

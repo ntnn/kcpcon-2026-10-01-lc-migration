@@ -151,7 +151,7 @@ DEMO := bin/demo
 $(DEMO):
 	$(GO) build -o $@ ./tools/demo
 
-# DEMO_FLAGS selects the migrated workspace, e.g. DEMO_FLAGS="-parent root:demo -workspace tenant".
+# DEMO_FLAGS selects the migrated workspace, e.g. DEMO_FLAGS="-parent root -workspace tenant".
 DEMO_FLAGS :=
 
 # Steps through setup and migration, waiting for enter before each step.
@@ -171,11 +171,13 @@ commands: $(DEMO) $(ETCDVIEW)
 migrate: $(DEMO)
 	$(DEMO) migrate -kubeconfig $(KCP_KUBECONFIG) $(DEMO_FLAGS)
 
-# Deletes the demo workspace tree and its generated kubeconfigs.
+# Deletes the demo workspace, migration, APIBinding and generated kubeconfigs.
 .PHONY: clean-demo
 clean-demo: $(KCPCTL)
-	KUBECONFIG=$(KCP_KUBECONFIG) $(KCPCTL) -W :root delete workspace demo --ignore-not-found --wait --timeout 5m
-	rm -f $(KUBE_DIR)/root-demo.kubeconfig
+	KUBECONFIG=$(KCP_KUBECONFIG) $(KCPCTL) -W :root delete workspace tenant --ignore-not-found --wait --timeout 5m
+	KUBECONFIG=$(KCP_KUBECONFIG) $(KCPCTL) -W :root delete logicalclustermigration tenant --ignore-not-found --wait --timeout 5m
+	KUBECONFIG=$(KCP_KUBECONFIG) $(KCPCTL) -W :root delete apibinding migration --ignore-not-found --wait --timeout 5m
+	rm -f $(KUBE_DIR)/root.kubeconfig
 
 NPM ?= npm
 
