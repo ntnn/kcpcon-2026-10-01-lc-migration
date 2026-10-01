@@ -343,11 +343,12 @@ layout: section
 # Operations
 
 - Feature gate on all shards
-- No cancel
-- Migrating back to a former origin stalls
-- Entire keyspace is scanned
-- Large objects are expensive on the origin
+- No cancel ([#4405](https://github.com/kcp-dev/kcp/issues/4405))
+- Migrating back to a former origin stalls ([#4409](https://github.com/kcp-dev/kcp/issues/4409))
+- Entire keyspace is scanned ([#4399](https://github.com/kcp-dev/kcp/issues/4399))
+- Large workspaces are expensive ([#4399](https://github.com/kcp-dev/kcp/issues/4399))
   - the dump reads 1000 values per etcd request
+- Large objects are expensive
 
 <!--
 Migrating back: cancelled per-cluster context stays in the context manager after OriginCleanup.
@@ -358,11 +359,11 @@ Dump: pkg/server/migrationdump scans the whole keyspace with values, #4399.
 
 # Data
 
-- Encryption at rest
+- Encryption at rest ([#4408](https://github.com/kcp-dev/kcp/issues/4408))
   - encryption keys must match
   - for aesgcm also the used storage prefix must match
   - destination does not become ready after restart
-- etcd leases are dropped
+- etcd leases are dropped ([#4407](https://github.com/kcp-dev/kcp/issues/4407))
   - Events never expire on the destination
 - Same kcp version on all shards
   - objects keep the origin's storage version
@@ -384,13 +385,13 @@ layout: section
 
 # Improvements
 
-- Online migration: copy, replay changes, short cutover
-- Verify copied data before `OriginCleanup`
-- Dump only the logical cluster's key ranges
-- Keep etcd leases
+- Online migration: copy, replay changes, short cutover ([#4410](https://github.com/kcp-dev/kcp/issues/4410))
+- Verify copied data before `OriginCleanup` ([#4411](https://github.com/kcp-dev/kcp/issues/4411))
+- Dump only the logical cluster's key ranges ([#4399](https://github.com/kcp-dev/kcp/issues/4399))
+- Keep etcd leases ([#4407](https://github.com/kcp-dev/kcp/issues/4407))
 - Not relisting the whole shard per migration
 
-Epic: kcp-dev/kcp#3498
+Epic: [kcp-dev/kcp#3498](https://github.com/kcp-dev/kcp/issues/3498)
 
 ---
 layout: center
