@@ -46,26 +46,16 @@ func printViewerCommands(ctx context.Context, w io.Writer, ws workspaceFlags, ou
 	if err := writeKubeconfig(ws.kubeconfig, parentKubeconfig, parentServer); err != nil {
 		return err
 	}
-	kubeconfig, err := filepath.Abs(ws.kubeconfig)
-	if err != nil {
-		return fmt.Errorf("resolving kubeconfig path: %w", err)
-	}
 
 	_, err = fmt.Fprintf(w, `# Terminal 1: keys of logical cluster %[1]s in the etcd of every shard
 bin/etcdview %[2]s -cluster %[1]s
 
 # Terminal 2: Workspace and LogicalClusterMigration objects
 hack/tools/stalk --kubeconfig %[3]s workspaces,logicalclustermigrations
-
-# Terminal 3: a client of the workspace, one request per second
-export KUBECONFIG=%[4]s
-while sleep 1; do hack/tools/kcpctl -W :%[5]s get configmap kube-root-ca.crt -o name; done
 `,
 		cluster,
 		etcdEndpoints,
 		parentKubeconfig,
-		kubeconfig,
-		ws.parent+":"+ws.workspace,
 	)
 	if err != nil {
 		return fmt.Errorf("printing commands: %w", err)
