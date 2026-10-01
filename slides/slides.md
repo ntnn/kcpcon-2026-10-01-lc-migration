@@ -35,11 +35,11 @@ layout: section
 
 - Single shard to multi shard
 - Decommissioning a shard, hardware or region changes
-- Isolating a noisy tenant
+- Isolating a busy tenant
 
 ---
 
-# Problems without migrations
+# Problems
 
 - Shards grow over time
   - Workspaces grow in size
@@ -47,7 +47,6 @@ layout: section
   - Traffic may vary wildly depending on the tenant
 - Shards are constrained by the etcd backing them
 - Shards are constrained by hardware
-- New shards only help to schedule new workspaces
 
 ---
 
@@ -69,15 +68,15 @@ layout: section
 
 ---
 
-# Cordon shards
+# Add more shards
 
-- Stop allocating new workspaces
+- Add additional shards for more capacity
 
 ---
 
-# Cordon shards
+# Add more shards
 
-- Stop allocating new workspaces
+- Add additional shards for more capacity
 
 ## Contra
 
@@ -91,7 +90,7 @@ layout: section
 - List available APIs
   - for each API enumerate every object
   - get and apply
-- Backup/restore tools like Velero
+- Backup/Restore tools like Velero
 
 ---
 
@@ -100,7 +99,7 @@ layout: section
 - List available APIs
   - for each API enumerate every object
   - get and apply
-- Backup/restore tools like Velero
+- Backup/Restore tools like Velero
 
 ## Contra
 
@@ -168,7 +167,7 @@ layout: section
 
 # Goals
 
-- Primitive for platforms
+- Primitive to build upon
 - Logical cluster keeps its identity
 - Objects retain their UID
 - Unrelated workspaces are not interrupted
@@ -220,7 +219,7 @@ flowchart LR
 layout: center
 ---
 
-# Demo: First part
+# Demo: Setup
 
 ---
 
@@ -326,7 +325,7 @@ flowchart LR
 layout: center
 ---
 
-# Demo: Second part
+# Demo: Migration
 
 ---
 
@@ -373,7 +372,7 @@ layout: section
 # Operations
 
 - Feature gate on all shards
-- No cancel ([#4405](https://github.com/kcp-dev/kcp/issues/4405))
+- No cancel, manual intervention required on errors ([#4405](https://github.com/kcp-dev/kcp/issues/4405))
 - Migrating back to a former origin stalls ([#4409](https://github.com/kcp-dev/kcp/issues/4409))
 - Entire keyspace is scanned ([#4399](https://github.com/kcp-dev/kcp/issues/4399))
 - Large workspaces are expensive ([#4399](https://github.com/kcp-dev/kcp/issues/4399))
@@ -424,9 +423,14 @@ layout: section
 Epic: [kcp-dev/kcp#3498](https://github.com/kcp-dev/kcp/issues/3498)
 
 ---
+
+# Contributing
+
+- Test migrations in your environment
+- Pick a ticket and make a PR
+
+---
 layout: center
 ---
 
 # Questions
-
-github.com/ntnn/kcpcon-2026-10-01-lc-migration
